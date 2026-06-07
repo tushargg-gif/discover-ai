@@ -7,8 +7,14 @@
  *  Refreshes star counts, last_commit_at, and is_maintained for every MCP in the DB.
  */
 
+import { config as loadEnv } from "dotenv";
+import ws from "ws";
 import { Octokit } from "@octokit/rest";
 import { createClient } from "@supabase/supabase-js";
+
+// Load .env.local for local runs. In GitHub Actions the env is injected
+// directly and already-set vars take precedence (dotenv never overrides them).
+loadEnv({ path: ".env.local" });
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -22,7 +28,11 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !GITHUB_TOKEN) {
 }
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Node < 22 has no native WebSocket; supabase-js needs one for its realtime
+// client (unused here, but instantiated eagerly). Provide `ws` as transport.
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  realtime: { transport: ws as any },
+});
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
