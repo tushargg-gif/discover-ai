@@ -1,0 +1,31 @@
+name: Nightly MCP Sync
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 2:00am UTC every night
+  workflow_dispatch:        # also allows manual trigger from GitHub Actions tab
+
+jobs:
+  sync:
+    name: Sync MCP metadata from GitHub
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run sync
+        run: npm run sync
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
