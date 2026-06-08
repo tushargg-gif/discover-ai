@@ -26,6 +26,8 @@ jobs:
       - name: Run sync
         run: npm run sync
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use a PAT (5,000 req/hour), NOT the default GITHUB_TOKEN (1,000/hour).
+          # The sync makes one API call per MCP, which exceeds the default limit.
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
