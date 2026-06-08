@@ -106,19 +106,21 @@ Spend about 3–4 hours on this across Days 5–6. Quality here is the product.
 
 ## Step 7 — Set up nightly sync
 
-1. Push this project to GitHub:
+1. Push this project to GitHub (the repo is already `git init`'d and committed locally):
    ```bash
-   git init
-   git add .
-   git commit -m "feat: initial project setup"
    git remote add origin https://github.com/YOUR_USERNAME/discover-ai.git
    git push -u origin main
    ```
 
 2. Add secrets to GitHub repo:
    - Go to your repo → **Settings → Secrets and variables → Actions → New repository secret**
-   - Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` (same values as `.env.local`)
-   - Note: `GITHUB_TOKEN` is provided automatically by GitHub Actions — no need to add it
+   - Add three secrets (same values as `.env.local`):
+     - `SUPABASE_URL`
+     - `SUPABASE_ANON_KEY`
+     - `GH_PAT` — your GitHub personal access token
+   - ⚠️ The workflow uses `GH_PAT`, **not** the auto-provided `GITHUB_TOKEN`. The default
+     token is capped at 1,000 API calls/hour, but the sync makes one call per MCP (~4,000),
+     so it must use a PAT (5,000/hour).
 
 3. Test the workflow manually:
    - Go to repo → **Actions → Nightly MCP Sync → Run workflow**
