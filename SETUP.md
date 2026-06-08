@@ -19,15 +19,21 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Now open `.env.local` and fill in three values:
+Now open `.env.local` and fill in the values:
 
-| Variable | Where to get it |
-|---|---|
-| `SUPABASE_URL` | supabase.com → your project → Settings → API → Project URL |
-| `SUPABASE_ANON_KEY` | supabase.com → your project → Settings → API → anon public key |
-| `GITHUB_TOKEN` | github.com/settings/tokens → New token (classic) → tick `public_repo` only |
+| Variable | Where to get it | Used by |
+|---|---|---|
+| `SUPABASE_URL` | Settings → API → Project URL | scripts + frontend |
+| `SUPABASE_SERVICE_ROLE_KEY` | Settings → API → **service_role** secret key | scripts (writes) |
+| `SUPABASE_ANON_KEY` | Settings → API → **anon** public key | frontend (read) |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same URL + anon key | frontend |
+| `GITHUB_TOKEN` | github.com/settings/tokens → classic → `public_repo` | scripts |
 
-✅ Done when: `.env.local` has all three values filled in (no placeholder text).
+> 🔒 The **service_role** key bypasses Row Level Security — it must stay in `.env.local`
+> and GitHub Actions secrets only. Never expose it to the browser or commit it.
+> The **anon** key is the read-only public key that's safe to ship to the frontend.
+
+✅ Done when: `.env.local` has all values filled in (no placeholder text).
 
 ---
 
@@ -37,7 +43,11 @@ Now open `.env.local` and fill in three values:
 2. Once the project is ready, go to **SQL Editor → New query**
 3. Paste the entire contents of `supabase/schema.sql` and click **Run**
 
-✅ Done when: you can go to **Table Editor** and see tables `mcps`, `categories`, and `submissions` — and `categories` has 10 rows.
+> The schema includes a Row Level Security block at the bottom: the public anon key
+> can only **read** `mcps` / `categories`; all catalog writes are service-role only.
+> The whole file is idempotent, so it's safe to re-run on an existing project to apply RLS.
+
+✅ Done when: you can go to **Table Editor** and see tables `mcps`, `categories`, and `submissions` — `categories` has 10 rows — and each table shows "RLS enabled".
 
 ---
 
@@ -116,7 +126,7 @@ Spend about 3–4 hours on this across Days 5–6. Quality here is the product.
    - Go to your repo → **Settings → Secrets and variables → Actions → New repository secret**
    - Add three secrets (same values as `.env.local`):
      - `SUPABASE_URL`
-     - `SUPABASE_ANON_KEY`
+     - `SUPABASE_SERVICE_ROLE_KEY` — the sync writes to the DB, so it needs the service role key
      - `GH_PAT` — your GitHub personal access token
    - ⚠️ The workflow uses `GH_PAT`, **not** the auto-provided `GITHUB_TOKEN`. The default
      token is capped at 1,000 API calls/hour, but the sync makes one call per MCP (~4,000),

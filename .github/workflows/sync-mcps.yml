@@ -30,4 +30,5 @@ jobs:
           # The sync makes one API call per MCP, which exceeds the default limit.
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Service role key — required for writes once RLS is enabled.
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

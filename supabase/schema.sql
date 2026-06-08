@@ -92,3 +92,32 @@ DROP TRIGGER IF EXISTS mcps_updated_at ON mcps;
 CREATE TRIGGER mcps_updated_at
   BEFORE UPDATE ON mcps
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ============================================================
+-- Row Level Security (run before going public)
+-- ============================================================
+-- With RLS enabled, the public anon key can only do what a policy allows.
+-- The data scripts use the SERVICE ROLE key, which bypasses RLS entirely,
+-- so collect / sync / curate keep working without any policy.
+
+ALTER TABLE mcps        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE submissions ENABLE ROW LEVEL SECURITY;
+
+-- Public read-only access for the frontend (anon + logged-in users).
+DROP POLICY IF EXISTS "public read mcps" ON mcps;
+CREATE POLICY "public read mcps"
+  ON mcps FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "public read categories" ON categories;
+CREATE POLICY "public read categories"
+  ON categories FOR SELECT TO anon, authenticated USING (true);
+
+-- Vendor self-submit form (Week 4): anyone may INSERT a submission,
+-- but nobody can read others' submissions with the anon key.
+DROP POLICY IF EXISTS "public insert submissions" ON submissions;
+CREATE POLICY "public insert submissions"
+  ON submissions FOR INSERT TO anon, authenticated WITH CHECK (true);
+
+-- Note: no INSERT/UPDATE/DELETE policies on mcps or categories — writes are
+-- service-role only. The anon key cannot modify the catalog.

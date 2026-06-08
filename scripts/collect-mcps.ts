@@ -20,18 +20,23 @@ loadEnv({ path: ".env.local" });
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY!;
+// Writes use the SERVICE ROLE key, which bypasses Row Level Security.
+// Keep it ONLY in .env.local and GitHub Actions secrets — never in the frontend.
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !GITHUB_TOKEN) {
-  console.error("❌  Missing env vars. Copy .env.local.example → .env.local and fill in values.");
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !GITHUB_TOKEN) {
+  console.error(
+    "❌  Missing env vars. Need SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GITHUB_TOKEN.\n" +
+      "    Copy .env.local.example → .env.local and fill in values."
+  );
   process.exit(1);
 }
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 // Node < 22 has no native WebSocket; supabase-js needs one for its realtime
 // client (unused here, but instantiated eagerly). Provide `ws` as transport.
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   realtime: { transport: ws as any },
 });
 
