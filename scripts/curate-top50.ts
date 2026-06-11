@@ -17,13 +17,14 @@ import { createClient } from "@supabase/supabase-js";
 loadEnv({ path: ".env.local" });
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
-// Writes use the SERVICE ROLE key (bypasses RLS). Keep it out of the frontend.
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error("❌  Missing env vars. Need SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+// Writes use the SECRET key (sb_secret_…, bypasses RLS), legacy fallback. Keep out of the frontend.
+const SUPABASE_SECRET_KEY =
+  process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY!;
+if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
+  console.error("❌  Missing env vars. Need SUPABASE_URL and SUPABASE_SECRET_KEY.");
   process.exit(1);
 }
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
   realtime: { transport: ws as any },
 });
 

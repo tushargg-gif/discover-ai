@@ -24,14 +24,14 @@ Now open `.env.local` and fill in the values:
 | Variable | Where to get it | Used by |
 |---|---|---|
 | `SUPABASE_URL` | Settings → API → Project URL | scripts + frontend |
-| `SUPABASE_SERVICE_ROLE_KEY` | Settings → API → **service_role** secret key | scripts (writes) |
-| `SUPABASE_ANON_KEY` | Settings → API → **anon** public key | frontend (read) |
-| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same URL + anon key | frontend |
-| `GITHUB_TOKEN` | github.com/settings/tokens → classic → `public_repo` | scripts |
+| `SUPABASE_SECRET_KEY` | Settings → API Keys → **secret** key (`sb_secret_…`) | scripts (writes) |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Project URL + **publishable** key (`sb_publishable_…`) | frontend |
+| `GITHUB_TOKEN` | github.com/settings/tokens → classic → `repo` + `workflow` | scripts |
 
-> 🔒 The **service_role** key bypasses Row Level Security — it must stay in `.env.local`
+> 🔒 The **secret** key bypasses Row Level Security — it must stay in `.env.local`
 > and GitHub Actions secrets only. Never expose it to the browser or commit it.
-> The **anon** key is the read-only public key that's safe to ship to the frontend.
+> The **publishable** key respects RLS and is safe to ship to the frontend.
+> (Legacy `service_role`/`anon` keys still work as a fallback in code.)
 
 ✅ Done when: `.env.local` has all values filled in (no placeholder text).
 
@@ -126,7 +126,7 @@ Spend about 3–4 hours on this across Days 5–6. Quality here is the product.
    - Go to your repo → **Settings → Secrets and variables → Actions → New repository secret**
    - Add three secrets (same values as `.env.local`):
      - `SUPABASE_URL`
-     - `SUPABASE_SERVICE_ROLE_KEY` — the sync writes to the DB, so it needs the service role key
+     - `SUPABASE_SECRET_KEY` — the sync writes to the DB, so it needs the secret key
      - `GH_PAT` — your GitHub personal access token
    - ⚠️ The workflow uses `GH_PAT`, **not** the auto-provided `GITHUB_TOKEN`. The default
      token is capped at 1,000 API calls/hour, but the sync makes one call per MCP (~4,000),
